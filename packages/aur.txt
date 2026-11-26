@@ -9,6 +9,15 @@ antigravity
 ttf-ms-fonts
 ttf-wps-fonts
 
+# Terminal Fun & ASCII Toys (AUR / CachyOS)
+tty-clock
+bb
+pipes.sh
+unimatrix-git
+ascii-image-converter-bin
+cbonsai
+pipes-rs
+
 # Hybrid GPU / ASUS Laptop (skip with --minimal or on non-ASUS/NVIDIA machines)
 supergfxctl
 nvidia-laptop-power-cfg

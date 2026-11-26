@@ -58,16 +58,28 @@ fish
 starship
 eza
 fd
+fzf
 jq
 fastfetch
 yazi
 git
+github-cli
+opencode
 base-devel
 unzip
 7zip
 wget
+zbar
 python-pillow
 zram-generator
+
+# Terminal Fun & ASCII Toys
+toilet
+figlet
+ponysay
+nyancat
+asciiquarium
+cool-retro-term
 
 # Hardware Acceleration & Laptop Power (Intel Iris Xe + Optional Hybrid NVIDIA/ASUS)
 intel-media-driver
