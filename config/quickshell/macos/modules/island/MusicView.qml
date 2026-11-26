@@ -76,33 +76,62 @@ Item {
                         id: artHover
                         anchors.fill: parent
                         hoverEnabled: true
-                        cursorShape: ctrl.players.length > 1 ? Qt.PointingHandCursor : Qt.ArrowCursor
-                        onClicked: ctrl.cyclePlayer()
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        cursorShape: ctrl.hasMedia ? Qt.PointingHandCursor : Qt.ArrowCursor
+                        onClicked: (m) => {
+                            if (m.button === Qt.RightButton) {
+                                ctrl.cyclePlayer();
+                            } else if (ctrl.hasMedia) {
+                                ctrl.focusActivePlayer();
+                            }
+                        }
                     }
                 }
 
-                // Track title + artist + lyrics chip
+                // Track title + artist + lyrics & source dropdown pills
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignVCenter
                     spacing: 2
 
-                    Text {
+                    Item {
                         Layout.fillWidth: true
-                        text: ctrl.trackTitle
-                        font { family: Appearance.fontFamily; pixelSize: 14; weight: Font.Bold }
-                        color: "#ffffff"
-                        maximumLineCount: 1
-                        elide: Text.ElideRight
-                    }
+                        Layout.preferredHeight: trackTextCol.implicitHeight
 
-                    Text {
-                        Layout.fillWidth: true
-                        text: ctrl.trackArtist
-                        font { family: Appearance.fontFamily; pixelSize: 11; weight: Font.Medium }
-                        color: Qt.rgba(1, 1, 1, 0.56)
-                        maximumLineCount: 1
-                        elide: Text.ElideRight
+                        ColumnLayout {
+                            id: trackTextCol
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            spacing: 2
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: ctrl.trackTitle
+                                font { family: Appearance.fontFamily; pixelSize: 14; weight: Font.Bold }
+                                color: trackInfoMa.containsMouse ? ctrl.artAccent : "#ffffff"
+                                Behavior on color { ColorAnimation { duration: 130 } }
+                                maximumLineCount: 1
+                                elide: Text.ElideRight
+                            }
+
+                            Text {
+                                Layout.fillWidth: true
+                                text: ctrl.trackArtist
+                                font { family: Appearance.fontFamily; pixelSize: 11; weight: Font.Medium }
+                                color: trackInfoMa.containsMouse ? Qt.rgba(1, 1, 1, 0.80) : Qt.rgba(1, 1, 1, 0.56)
+                                Behavior on color { ColorAnimation { duration: 130 } }
+                                maximumLineCount: 1
+                                elide: Text.ElideRight
+                            }
+                        }
+
+                        MouseArea {
+                            id: trackInfoMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: ctrl.hasMedia ? Qt.PointingHandCursor : Qt.ArrowCursor
+                            onClicked: if (ctrl.hasMedia) ctrl.focusActivePlayer()
+                        }
                     }
 
                     // Subtle Lyrics toggle pill

@@ -113,23 +113,23 @@ Singleton {
         if (!n) return
         const action = defaultAction(n)
         if (action) {
-            action.invoke()
-            if (!n.resident) safeDismiss(n)
-            return
+            try { action.invoke() } catch (e) {}
         }
         focusApp(n)
+        if (!n.resident) safeDismiss(n)
     }
 
     function invokeAction(n, action) {
         if (!action) return
-        action.invoke()
+        const idLow = String(action.identifier || "").toLowerCase()
+        const txtLow = String(action.text || "").toLowerCase()
+        try { action.invoke() } catch (e) {}
+        const isPassive = /dismiss|close|ignore|mute|delete|mark.?read|cerrar|ignorar|silenciar|descartar/.test(idLow + " " + txtLow)
+        if (n && !isPassive) focusApp(n)
         if (n && !n.resident) safeDismiss(n)
     }
 
-    // ── window matching (from K4 Notifs) ──────────────────────────
-    property var pendingMatch: []
-    property string pendingPid: ""
-    property var pendingNotification: null
+    // ── window matching (GUI + CLI apps via focus_notif.py) ───────
     property var destinos: ({})
 
     readonly property string terminal: "kitty"
@@ -137,7 +137,27 @@ Singleton {
     readonly property var aliases: ({
         "claude code": terminal,
         "claude": terminal,
-        "codex": terminal
+        "codex": terminal,
+        "opencode": terminal,
+        "oc": terminal,
+        "gemini": terminal,
+        "gemini cli": terminal,
+        "gemini-cli": terminal,
+        "agy": terminal,
+        "aider": terminal,
+        "notify-send": terminal,
+        "terminal": terminal,
+        "kitty": terminal,
+        "bash": terminal,
+        "zsh": terminal,
+        "fish": terminal,
+        "tmux": terminal,
+        "nvim": terminal,
+        "neovim": terminal,
+        "telegram desktop": "org.telegram.desktop",
+        "youtube music": "com.github.th-ch.youtube-music",
+        "mozilla firefox": "firefox",
+        "zapfast": "zapfast"
     })
 
     function _clave(app, cuerpo) {
@@ -190,64 +210,29 @@ Singleton {
         return salida
     }
 
+    function focusByMeta(appName, desktopEntry, summary, body, pid) {
+        const a = String(appName || "").trim()
+        const de = String(desktopEntry || "").trim()
+        const s = String(summary || "").replace(/[\r\n]+/g, " ").trim()
+        const b = String(body || "").replace(/[\r\n]+/g, " ").trim()
+        const p = String(pid || "").trim()
+        if (a.length === 0 && de.length === 0 && p.length === 0) return
+        Quickshell.execDetached([
+            "python3",
+            Quickshell.env("HOME") + "/.config/quickshell/macos/services/focus_notif.py",
+            a, de, s, b, p
+        ])
+    }
+
     function focusApp(n) {
-        const clases = clasesDe(n)
-        if (clases.length === 0) return
-        pendingMatch = clases
-        pendingPid = destinoDe(n)
-        pendingNotification = n
-        clientQuery.running = true
+        if (!n) return
+        focusByMeta(n.appName, n.desktopEntry, n.summary, n.body, destinoDe(n))
     }
 
     function casa(clases, cls, initial) {
         for (let i = 0; i < clases.length; ++i)
             if (clases[i] === cls || clases[i] === initial) return true
         return false
-    }
-
-    function matchAndFocus(json) {
-        const clases = pendingMatch
-        const n = pendingNotification
-        const pid = pendingPid
-        pendingMatch = []
-        pendingPid = ""
-        pendingNotification = null
-        if (!clases || clases.length === 0) return
-        let list
-        try { list = JSON.parse(json) } catch (e) { return }
-
-        const colas = []
-        for (let i = 0; i < clases.length; ++i) {
-            const k = clases[i]
-            const cola = k.indexOf(".") !== -1 ? k.substring(k.lastIndexOf(".") + 1) : k
-            if (cola.length > 3 && colas.indexOf(cola) < 0) colas.push(cola)
-        }
-
-        let exact = null
-        let partial = null
-        let porPid = null
-        for (let i = 0; i < list.length; ++i) {
-            const c = list[i]
-            const cls = String(c.class || "").toLowerCase()
-            const initial = String(c.initialClass || "").toLowerCase()
-            const title = String(c.title || "").toLowerCase()
-            const initialTitle = String(c.initialTitle || "").toLowerCase()
-            if (pid.length > 0 && String(c.pid) === pid) { porPid = c; break }
-            if (casa(clases, cls, initial)) { exact = c; break }
-            if (partial === null)
-                for (let j = 0; j < colas.length; ++j)
-                    if (cls.indexOf(colas[j]) !== -1 || initial.indexOf(colas[j]) !== -1
-                        || initialTitle.indexOf(colas[j]) !== -1
-                        || title.indexOf(colas[j]) !== -1) { partial = c; break }
-        }
-
-        const found = porPid || exact || partial
-        if (found) {
-            Hyprland.dispatch('hl.dsp.focus({ window = "address:' + found.address + '" })')
-            if (n && !n.resident) safeDismiss(n)
-            return
-        }
-        if (n && launchEntry(n)) safeDismiss(n)
     }
 
     function launchEntry(n) {
@@ -296,20 +281,6 @@ Singleton {
         target: Hyprland
         function onActiveToplevelChanged() {
             root.descartarDeVentana(Hyprland.activeToplevel)
-        }
-    }
-
-    Process {
-        id: clientQuery
-        command: ["hyprctl", "-j", "clients"]
-        stderr: SplitParser {
-            onRead: function (l) {
-                if (String(l).trim().length > 0)
-                    console.warn("notifications:", l)
-            }
-        }
-        stdout: StdioCollector {
-            onStreamFinished: root.matchAndFocus(this.text)
         }
     }
 

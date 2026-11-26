@@ -1395,6 +1395,7 @@ PanelWindow {
         function pushHistory(n) {
             const item = {
                 id: n.id, appName: n.appName || "",
+                desktopEntry: n.desktopEntry || "",
                 summary: n.summary || "", body: n.body || "",
                 icon: Notifications.iconFor(n), notif: n
             };
@@ -1560,9 +1561,13 @@ PanelWindow {
                                 HoverHandler { id: notifHover }
                                 MouseArea {
                                     anchors.fill: parent
+                                    cursorShape: Qt.PointingHandCursor
                                     onClicked: {
-                                        Notifications.activate(modelData.notif);
-                                        Notifications.dismiss(modelData.notif);
+                                        if (modelData.notif) {
+                                            Notifications.activate(modelData.notif);
+                                        } else {
+                                            Notifications.focusByMeta(modelData.appName, modelData.desktopEntry, modelData.summary, modelData.body, "");
+                                        }
                                         notificationCenter.removeHistory(modelData.id);
                                         ShellController.notificationsOpen = false;
                                     }

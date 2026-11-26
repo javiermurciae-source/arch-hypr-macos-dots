@@ -357,6 +357,25 @@ Item {
         }
     }
 
+    function focusPlayer(p) {
+        if (!p) return;
+        const dbus = String(p.dbusName || "");
+        const id = String(p.identity || "");
+        const entry = String(p.desktopEntry || "");
+        const title = String(p.trackTitle || "").replace(/[\r\n]+/g, " ").trim();
+        state.sourcesMenuOpen = false;
+        state.expanded = false;
+        Quickshell.execDetached([
+            "python3",
+            Quickshell.env("HOME") + "/.config/quickshell/macos/modules/island/focus_player.py",
+            dbus, id, entry, title
+        ]);
+    }
+
+    function focusActivePlayer() {
+        focusPlayer(state.activePlayer);
+    }
+
     function cyclePlayer() {
         if (state.players.length <= 1) return;
         const nextIdx = (state.playerIndex + 1) % state.players.length;

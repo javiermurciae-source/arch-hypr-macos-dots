@@ -8,11 +8,74 @@ Commands:
   ocr <image_path>                         Extract text (tesseract if available, else agy -p) + wl-copy
   quick_url <image_path>                   Fast URL detection if tesseract is installed
 """
-import base64, json, os, re, shutil, subprocess, sys, tempfile
+import base64, json, os, re, shutil, subprocess, sys, tempfile, time
 
 HOME = os.path.expanduser("~")
 AGY_BIN = os.path.join(HOME, ".local/bin/agy")
+MINIMIZE_SCRIPT = os.path.join(HOME, ".config/hypr/scripts/minimize_window.py")
 MODEL = "Gemini 3.8 Flash (Low)"
+
+
+def focus_firefox_for_lens(existing_addrs):
+    """Switch to the Firefox workspace and focus the window receiving Google Lens."""
+    def get_firefox_clients():
+        try:
+            cs = json.loads(subprocess.check_output(["hyprctl", "-j", "clients"], text=True, timeout=3))
+        except Exception:
+            return []
+        return [
+            c for c in cs
+            if "firefox" in (c.get("class") or "").lower()
+            or "firefox" in (c.get("initialClass") or "").lower()
+        ]
+
+    target = None
+    deadline = time.monotonic() + 2.6
+    while time.monotonic() < deadline:
+        fcs = get_firefox_clients()
+        if fcs:
+            # 1. Exact window showing Google Lens tab
+            lens_win = next(
+                (c for c in fcs if "lens" in (c.get("title") or "").lower()),
+                None,
+            )
+            if lens_win:
+                target = lens_win
+                break
+            # 2. Brand new Firefox window spawned by this launch
+            new_win = next((c for c in fcs if c.get("address") not in existing_addrs), None)
+            if new_win:
+                target = new_win
+                break
+            # 3. Existing Firefox window (after a brief grace window for tab title update)
+            if time.monotonic() > deadline - 2.0:
+                visible = [c for c in fcs if (c.get("workspace") or {}).get("name") != "special:minimized"]
+                pool = visible if visible else fcs
+                target = min(pool, key=lambda c: c.get("focusHistoryID", 999))
+                break
+        time.sleep(0.12)
+
+    if not target:
+        return
+    addr = target.get("address")
+    ws = target.get("workspace") or {}
+    ws_name = ws.get("name") or ""
+    ws_id = ws.get("id")
+    if ws_name == "special:minimized" and os.path.isfile(MINIMIZE_SCRIPT):
+        subprocess.Popen(
+            ["python3", MINIMIZE_SCRIPT, "restore", addr],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        return
+    if isinstance(ws_id, int) and ws_id > 0:
+        lua = (
+            f'hl.dispatch(hl.dsp.focus({{ workspace = {ws_id} }})); '
+            f'hl.dispatch(hl.dsp.focus({{ window = "address:{addr}" }}))'
+        )
+    else:
+        lua = f'hl.dispatch(hl.dsp.focus({{ window = "address:{addr}" }}))'
+    subprocess.run(["hyprctl", "eval", lua], capture_output=True, text=True, timeout=3)
 
 
 def cmd_capture(args):
@@ -87,8 +150,17 @@ def cmd_lens(args):
 </body></html>"""
         with open(tmp_html, "w", encoding="utf-8") as f:
             f.write(html)
+        try:
+            existing_addrs = {
+                c.get("address")
+                for c in json.loads(subprocess.check_output(["hyprctl", "-j", "clients"], text=True, timeout=3))
+                if "firefox" in (c.get("class") or "").lower()
+            }
+        except Exception:
+            existing_addrs = set()
         subprocess.Popen(["setsid", "-f", "firefox", f"file://{tmp_html}"],
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        focus_firefox_for_lens(existing_addrs)
         subprocess.Popen(
             ["setsid", "-f", "sh", "-c", f"sleep 15; rm -f '{tmp_html}' '{tmp_jpg}'"],
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL

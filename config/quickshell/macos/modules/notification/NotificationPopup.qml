@@ -51,10 +51,11 @@ PanelWindow {
         id: popMouse
         anchors.fill: parent
         hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: {
             const n = root.current;
             root.current = null;
-            if (n) Notifications.dismiss(n);
+            if (n) Notifications.activate(n);
         }
     }
 
