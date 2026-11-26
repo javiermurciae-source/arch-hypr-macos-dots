@@ -751,6 +751,7 @@ Item {
     // ── File Shelf & Clipboard History ────────────────────────────
     property var shelfItems: [] // [{path, name, sizeText, isImage}]
     property var clipItems: []  // [{id, preview}]
+    property bool draggingShelfOut: false
 
     function addShelfPaths(urls) {
         if (!urls || urls.length === 0) return;
@@ -775,6 +776,21 @@ Item {
 
     function openShelfItem(path) {
         runDetached("xdg-open " + shellQuote(path));
+    }
+
+    function filePathToUri(path) {
+        const raw = String(path || "");
+        if (raw.startsWith("file://")) return raw;
+        return "file://" + encodeURI(raw).replace(/#/g, "%23").replace(/\?/g, "%3F");
+    }
+
+    function copyShelfFile(path) {
+        const uri = filePathToUri(path);
+        const base = String(path || "").split("/").pop() || path;
+        clipCopyProc.running = false;
+        clipCopyProc.command = ["bash", "-c", "printf '%s\\r\\n' " + shellQuote(uri) + " | wl-copy --type text/uri-list"];
+        clipCopyProc.running = true;
+        state.showHud("clipboard", "Archivo copiado", base.slice(0, 40), "✓", 1.0, "#30d158", 1600, false);
     }
 
     function copyText(txt) {

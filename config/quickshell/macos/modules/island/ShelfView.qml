@@ -25,6 +25,7 @@ Item {
             DropArea {
                 id: dropArea
                 anchors.fill: parent
+                enabled: !ctrl.draggingShelfOut
                 onDropped: (drop) => {
                     if (drop.hasUrls && drop.urls.length > 0) {
                         ctrl.addShelfPaths(drop.urls);
@@ -60,26 +61,28 @@ Item {
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: dropArea.containsDrag ? "Release to pin file" : "Drop files here"
+                    text: dropArea.containsDrag ? "Suelta para guardar" : "Arrastra archivos aquí"
                     font { family: Appearance.fontFamily; pixelSize: 11; weight: Font.DemiBold }
                     color: dropArea.containsDrag ? "#5ec2ff" : Qt.rgba(1, 1, 1, 0.65)
                 }
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Click items later to open or copy"
+                    text: "Arrastra fuera a cualquier app · Clic abre"
                     font { family: Appearance.fontFamily; pixelSize: 9 }
                     color: Qt.rgba(1, 1, 1, 0.36)
                 }
             }
 
-            // Dropped file tiles (horizontal scroll)
+            // Dropped file tiles (horizontal scroll; drag any tile out to Nautilus, browser, ChatGPT, etc.)
             Flickable {
+                id: shelfFlick
                 anchors.fill: parent
                 anchors.margins: 6
                 visible: ctrl.shelfItems.length > 0
                 contentWidth: shelfRow.width
                 contentHeight: height
                 clip: true
+                interactive: !ctrl.draggingShelfOut
                 boundsBehavior: Flickable.StopAtBounds
 
                 Row {
@@ -92,14 +95,50 @@ Item {
                         delegate: Rectangle {
                             id: tile
                             required property var modelData
+                            readonly property string fileUri: ctrl.filePathToUri(modelData.path)
+                            property bool isDraggingThis: false
+
                             width: 72
                             height: shelfRow.height
                             radius: 10
-                            color: tileHover.hovered ? Qt.rgba(1, 1, 1, 0.11) : Qt.rgba(1, 1, 1, 0.05)
-                            border.color: Qt.rgba(1, 1, 1, 0.08)
+                            color: isDraggingThis
+                                ? Qt.rgba(0.23, 0.62, 1.0, 0.24)
+                                : (tileHover.hovered ? Qt.rgba(1, 1, 1, 0.11) : Qt.rgba(1, 1, 1, 0.05))
+                            border.color: isDraggingThis ? "#3b9eff" : Qt.rgba(1, 1, 1, 0.08)
                             border.width: 1
+                            opacity: isDraggingThis ? 0.72 : 1.0
+                            scale: isDraggingThis ? 0.94 : 1.0
+                            Behavior on scale { NumberAnimation { duration: 110; easing.type: Easing.OutCubic } }
 
                             HoverHandler { id: tileHover }
+
+                            // Native Wayland/Qt external drag source (works in Nautilus, Firefox, ChatGPT, Telegram, etc.)
+                            Item {
+                                id: dragProxy
+                                anchors.fill: parent
+                                Drag.dragType: Drag.Automatic
+                                Drag.supportedActions: Qt.CopyAction
+                                Drag.proposedAction: Qt.CopyAction
+                                Drag.imageSource: modelData.isImage
+                                    ? tile.fileUri
+                                    : Qt.resolvedUrl("../../assets/icons/file_drag.svg")
+                                Drag.imageSourceSize: Qt.size(56, 56)
+                                Drag.hotSpot: Qt.point(28, 28)
+                                Drag.mimeData: ({
+                                    "text/uri-list": tile.fileUri + "\r\n",
+                                    "x-special/gnome-copied-files": "copy\n" + tile.fileUri,
+                                    "text/plain": tile.fileUri
+                                })
+                                Drag.onDragStarted: {
+                                    tile.isDraggingThis = true;
+                                    ctrl.draggingShelfOut = true;
+                                }
+                                Drag.onDragFinished: (dropAction) => {
+                                    dragProxy.Drag.active = false;
+                                    tile.isDraggingThis = false;
+                                    ctrl.draggingShelfOut = false;
+                                }
+                            }
 
                             ColumnLayout {
                                 anchors.fill: parent
@@ -116,7 +155,7 @@ Item {
 
                                     Image {
                                         anchors.fill: parent
-                                        source: modelData.isImage ? ("file://" + modelData.path) : ""
+                                        source: modelData.isImage ? tile.fileUri : ""
                                         fillMode: Image.PreserveAspectCrop
                                         asynchronous: true
                                         visible: modelData.isImage && status === Image.Ready
@@ -147,6 +186,7 @@ Item {
                                     font { family: Appearance.fontFamily; pixelSize: 9; weight: Font.DemiBold }
                                     color: "#ffffff"
                                     horizontalAlignment: Text.AlignHCenter
+                                    maximumLineCount: 1
                                     elide: Text.ElideMiddle
                                 }
 
@@ -156,28 +196,86 @@ Item {
                                     font { family: Appearance.fontFamily; pixelSize: 8 }
                                     color: Qt.rgba(1, 1, 1, 0.45)
                                     horizontalAlignment: Text.AlignHCenter
+                                    maximumLineCount: 1
                                 }
                             }
 
                             MouseArea {
+                                id: tileDragMa
                                 anchors.fill: parent
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: (m) => {
-                                    if (m.button === Qt.RightButton) ctrl.copyText(modelData.path);
-                                    else ctrl.openShelfItem(modelData.path);
+                                preventStealing: true
+                                cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
+
+                                property real pressX: 0
+                                property real pressY: 0
+                                property bool didDrag: false
+
+                                onPressed: (m) => {
+                                    pressX = m.x;
+                                    pressY = m.y;
+                                    didDrag = false;
+                                }
+                                onPositionChanged: (m) => {
+                                    if (didDrag || !(m.buttons & Qt.LeftButton)) return;
+                                    const dx = m.x - pressX;
+                                    const dy = m.y - pressY;
+                                    if (dx * dx + dy * dy >= 36) {
+                                        didDrag = true;
+                                        tile.isDraggingThis = true;
+                                        ctrl.draggingShelfOut = true;
+                                        dragProxy.Drag.active = true;
+                                        if (!dragProxy.Drag.active) {
+                                            tile.isDraggingThis = false;
+                                            ctrl.draggingShelfOut = false;
+                                        }
+                                    }
+                                }
+                                onReleased: (m) => {
+                                    if (didDrag) {
+                                        didDrag = false;
+                                        return;
+                                    }
+                                    if (m.button === Qt.RightButton) ctrl.copyShelfFile(modelData.path);
+                                    else if (m.button === Qt.LeftButton) ctrl.openShelfItem(modelData.path);
+                                }
+                                onCanceled: {
+                                    didDrag = false;
+                                    tile.isDraggingThis = false;
+                                    ctrl.draggingShelfOut = false;
                                 }
                             }
 
+                            // Top-left copy-file button (pastes real file with Ctrl+V anywhere)
                             Rectangle {
-                                visible: tileHover.hovered
+                                visible: tileHover.hovered && !tile.isDraggingThis
+                                anchors.top: parent.top; anchors.left: parent.left
+                                anchors.margins: 3
+                                width: 15; height: 15; radius: 7.5
+                                color: copyTileMa.containsMouse ? "#3b9eff" : Qt.rgba(0, 0, 0, 0.72)
+                                Text { anchors.centerIn: parent; text: "⧉"; font.pixelSize: 8; color: "#ffffff" }
+                                MouseArea {
+                                    id: copyTileMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
+                                    onClicked: ctrl.copyShelfFile(modelData.path)
+                                }
+                            }
+
+                            // Top-right remove button
+                            Rectangle {
+                                visible: tileHover.hovered && !tile.isDraggingThis
                                 anchors.top: parent.top; anchors.right: parent.right
                                 anchors.margins: 3
                                 width: 15; height: 15; radius: 7.5
-                                color: Qt.rgba(0, 0, 0, 0.72)
+                                color: delTileMa.containsMouse ? "#ff453a" : Qt.rgba(0, 0, 0, 0.72)
                                 Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 8; color: "#ffffff" }
                                 MouseArea {
-                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    id: delTileMa
+                                    anchors.fill: parent
+                                    hoverEnabled: true
+                                    cursorShape: Qt.PointingHandCursor
                                     onClicked: ctrl.removeShelfItem(modelData.path)
                                 }
                             }

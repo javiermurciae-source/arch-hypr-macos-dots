@@ -163,7 +163,7 @@ PanelWindow {
         id: hoverCollapseTimer
         interval: 380
         onTriggered: {
-            if (!notchHover.hovered && !islandState.addingTodo && !islandState.replyingNotif && !islandState.scrubbing && !islandState.waterSettingsOpen && !dragRevealArea.containsDrag) {
+            if (!notchHover.hovered && !islandState.addingTodo && !islandState.replyingNotif && !islandState.scrubbing && !islandState.waterSettingsOpen && !islandState.draggingShelfOut && !dragRevealArea.containsDrag) {
                 islandState.expanded = false;
                 islandState.notifPaused = false;
             }
@@ -283,8 +283,7 @@ PanelWindow {
             }
             onWheel: (w) => {
                 if (islandState.expanded) {
-                    if (w.angleDelta.y > 0) root.prevPage();
-                    else if (w.angleDelta.y < 0) root.nextPage();
+                    w.accepted = false;
                 } else {
                     const step = w.angleDelta.y > 0 ? 0.05 : -0.05;
                     Audio.setVolume(Audio.volume + step);
