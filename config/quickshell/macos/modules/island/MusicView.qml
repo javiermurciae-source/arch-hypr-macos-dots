@@ -6,27 +6,28 @@ import "../common"
 Item {
     id: root
     required property var ctrl
-
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 6
+    clip: true
 
     RowLayout {
-        Layout.fillWidth: true
-        Layout.fillHeight: true
+        anchors.fill: parent
         spacing: 16
 
         // ── Left column: Album Art + Info + Scrubber + Transport ──
-        ColumnLayout {
+        Item {
+            id: leftPane
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.preferredWidth: ctrl.lyricsOpen ? 245 : 390
-            spacing: 7
 
-            // Top section: Album art + Title / Artist + Lyrics toggle
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 12
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 7
+
+                // Top section: Album art + Title / Artist + Lyrics & Source dropdown pills
+                RowLayout {
+                    id: topMediaRow
+                    Layout.fillWidth: true
+                    spacing: 12
 
                 // Clickable Album Art (clicks cycle MPRIS players like Nusa 1.2!)
                 Rectangle {
@@ -91,6 +92,7 @@ Item {
                         text: ctrl.trackTitle
                         font { family: Appearance.fontFamily; pixelSize: 14; weight: Font.Bold }
                         color: "#ffffff"
+                        maximumLineCount: 1
                         elide: Text.ElideRight
                     }
 
@@ -99,6 +101,7 @@ Item {
                         text: ctrl.trackArtist
                         font { family: Appearance.fontFamily; pixelSize: 11; weight: Font.Medium }
                         color: Qt.rgba(1, 1, 1, 0.56)
+                        maximumLineCount: 1
                         elide: Text.ElideRight
                     }
 
@@ -133,14 +136,76 @@ Item {
                             }
                         }
 
-                        Text {
-                            visible: ctrl.playerName !== "" && !ctrl.lyricsOpen
-                            text: ctrl.playerName
-                            font { family: Appearance.fontFamily; pixelSize: 9 }
-                            color: Qt.rgba(1, 1, 1, 0.36)
-                            elide: Text.ElideRight
-                            Layout.fillWidth: true
+                        // Interactive Source Dropdown Pill (replaces plain source text, preserves clean layout)
+                        Rectangle {
+                            id: sourcePill
+                            visible: ctrl.hasMedia && ctrl.activePlayer !== null
+                            readonly property bool multi: ctrl.players.length > 1
+                            readonly property bool multiPlaying: ctrl.playingCount > 1
+                            readonly property string labelText: ctrl.playerLabel(ctrl.activePlayer)
+
+                            Layout.maximumWidth: ctrl.lyricsOpen ? 112 : 180
+                            implicitWidth: Math.min(Layout.maximumWidth, srcPillRow.implicitWidth + 12)
+                            height: 18
+                            radius: 9
+                            color: ctrl.sourcesMenuOpen
+                                ? Qt.rgba(ctrl.artAccent.r, ctrl.artAccent.g, ctrl.artAccent.b, 0.26)
+                                : (srcPillMa.containsMouse
+                                    ? Qt.rgba(1, 1, 1, 0.14)
+                                    : (multi ? Qt.rgba(1, 1, 1, 0.08) : "transparent"))
+                            border.width: (ctrl.sourcesMenuOpen || multiPlaying) ? 1 : 0
+                            border.color: ctrl.sourcesMenuOpen
+                                ? Qt.rgba(ctrl.artAccent.r, ctrl.artAccent.g, ctrl.artAccent.b, 0.72)
+                                : Qt.rgba(0.19, 0.82, 0.35, 0.55)
+                            Behavior on color { ColorAnimation { duration: 130 } }
+
+                            Row {
+                                id: srcPillRow
+                                anchors.centerIn: parent
+                                spacing: 4
+
+                                Rectangle {
+                                    visible: sourcePill.multiPlaying
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    width: 5
+                                    height: 5
+                                    radius: 2.5
+                                    color: "#30d158"
+                                }
+
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: sourcePill.multi
+                                        ? (sourcePill.labelText + " · " + ctrl.players.length)
+                                        : sourcePill.labelText
+                                    font { family: Appearance.fontFamily; pixelSize: 9; weight: sourcePill.multi || ctrl.sourcesMenuOpen ? Font.DemiBold : Font.Medium }
+                                    color: (ctrl.sourcesMenuOpen || srcPillMa.containsMouse)
+                                        ? "#ffffff"
+                                        : (sourcePill.multi ? Qt.rgba(1, 1, 1, 0.76) : Qt.rgba(1, 1, 1, 0.44))
+                                    elide: Text.ElideRight
+                                    maximumLineCount: 1
+                                }
+
+                                Text {
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    text: ctrl.sourcesMenuOpen ? "▴" : "▾"
+                                    font { family: Appearance.fontFamily; pixelSize: 8; weight: Font.Bold }
+                                    color: (ctrl.sourcesMenuOpen || srcPillMa.containsMouse)
+                                        ? "#ffffff"
+                                        : (sourcePill.multi ? Qt.rgba(1, 1, 1, 0.65) : Qt.rgba(1, 1, 1, 0.34))
+                                }
+                            }
+
+                            MouseArea {
+                                id: srcPillMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: ctrl.sourcesMenuOpen = !ctrl.sourcesMenuOpen
+                            }
                         }
+
+                        Item { Layout.fillWidth: true }
                     }
                 }
             }
@@ -354,6 +419,244 @@ Item {
                     }
                 }
             }
+            }
+
+            // Click-outside catcher to dismiss sources dropdown
+            MouseArea {
+                visible: ctrl.sourcesMenuOpen
+                anchors.fill: parent
+                z: 40
+                onClicked: ctrl.sourcesMenuOpen = false
+            }
+
+            // Sleek Dropdown Source Selector anchored right below the top media row
+            Rectangle {
+                id: sourcesDropdown
+                visible: ctrl.sourcesMenuOpen
+                z: 50
+                anchors.left: parent.left
+                anchors.right: parent.right
+                y: topMediaRow.y + topMediaRow.height + 5
+                height: Math.min(parent.height - y - 2, dropdownCol.implicitHeight + 10)
+                radius: 12
+                color: Qt.rgba(0.08, 0.08, 0.12, 0.96)
+                border.width: 1
+                border.color: Qt.rgba(1, 1, 1, 0.16)
+                clip: true
+
+                opacity: ctrl.sourcesMenuOpen ? 1.0 : 0.0
+                scale: ctrl.sourcesMenuOpen ? 1.0 : 0.96
+                transformOrigin: Item.Top
+                Behavior on opacity { NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+
+                ColumnLayout {
+                    id: dropdownCol
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.top: parent.top
+                    anchors.margins: 5
+                    spacing: 4
+
+                    Flickable {
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Math.min(104, sourcesListCol.implicitHeight)
+                        contentWidth: width
+                        contentHeight: sourcesListCol.implicitHeight
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        ColumnLayout {
+                            id: sourcesListCol
+                            width: parent.width
+                            spacing: 3
+
+                            Repeater {
+                                model: ctrl.players
+                                delegate: Rectangle {
+                                    id: dropItem
+                                    required property var modelData
+                                    required property int index
+                                    readonly property bool isSelected: index === ctrl.playerIndex
+                                    readonly property bool isSrcPlaying: modelData && modelData.playbackState === MprisPlaybackState.Playing
+                                    readonly property string srcTitle: (modelData && modelData.trackTitle)
+                                        ? String(modelData.trackTitle).replace(/[\r\n]+/g, " ").replace(/\s{2,}/g, " ").trim()
+                                        : ctrl.playerLabel(modelData)
+                                    readonly property string srcLabel: ctrl.playerLabel(modelData)
+                                    readonly property string srcArt: (modelData && modelData.trackArtUrl) ? String(modelData.trackArtUrl) : ""
+
+                                    Layout.fillWidth: true
+                                    Layout.preferredHeight: 32
+                                    radius: 8
+                                    color: isSelected
+                                        ? Qt.rgba(ctrl.artAccent.r, ctrl.artAccent.g, ctrl.artAccent.b, 0.22)
+                                        : (dropRowMa.containsMouse ? Qt.rgba(1, 1, 1, 0.11) : Qt.rgba(1, 1, 1, 0.04))
+                                    border.width: isSelected ? 1 : 0
+                                    border.color: Qt.rgba(ctrl.artAccent.r, ctrl.artAccent.g, ctrl.artAccent.b, 0.55)
+                                    Behavior on color { ColorAnimation { duration: 120 } }
+
+                                    MouseArea {
+                                        id: dropRowMa
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: {
+                                            ctrl.selectPlayer(dropItem.index);
+                                            ctrl.sourcesMenuOpen = false;
+                                        }
+                                    }
+
+                                    RowLayout {
+                                        anchors.fill: parent
+                                        anchors.leftMargin: 6
+                                        anchors.rightMargin: 6
+                                        spacing: 7
+
+                                        // Mini cover art + live green dot
+                                        Item {
+                                            Layout.preferredWidth: 20
+                                            Layout.preferredHeight: 20
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                radius: 5
+                                                color: "#1b1b24"
+                                                clip: true
+                                                Image {
+                                                    anchors.fill: parent
+                                                    source: dropItem.srcArt
+                                                    fillMode: Image.PreserveAspectCrop
+                                                    asynchronous: true
+                                                    smooth: true
+                                                    visible: dropItem.srcArt !== "" && status === Image.Ready
+                                                }
+                                                Text {
+                                                    anchors.centerIn: parent
+                                                    visible: dropItem.srcArt === ""
+                                                    text: "♪"
+                                                    font { family: Appearance.fontFamily; pixelSize: 10; weight: Font.Bold }
+                                                    color: "#5e9cff"
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                visible: dropItem.isSrcPlaying
+                                                anchors.right: parent.right
+                                                anchors.bottom: parent.bottom
+                                                anchors.rightMargin: -1
+                                                anchors.bottomMargin: -1
+                                                width: 6
+                                                height: 6
+                                                radius: 3
+                                                color: "#30d158"
+                                                border.width: 1
+                                                border.color: "#09090e"
+                                            }
+                                        }
+
+                                        // Track title + source & status subtitle
+                                        ColumnLayout {
+                                            Layout.fillWidth: true
+                                            spacing: 0
+
+                                            Text {
+                                                Layout.fillWidth: true
+                                                text: dropItem.srcTitle
+                                                font { family: Appearance.fontFamily; pixelSize: 10; weight: dropItem.isSelected ? Font.Bold : Font.Medium }
+                                                color: dropItem.isSelected ? "#ffffff" : Qt.rgba(1, 1, 1, 0.84)
+                                                maximumLineCount: 1
+                                                elide: Text.ElideRight
+                                            }
+
+                                            Text {
+                                                Layout.fillWidth: true
+                                                text: dropItem.srcLabel + (dropItem.isSrcPlaying ? " · Sonando" : " · En pausa")
+                                                font { family: Appearance.fontFamily; pixelSize: 9; weight: Font.Medium }
+                                                color: dropItem.isSrcPlaying ? "#30d158" : Qt.rgba(1, 1, 1, 0.44)
+                                                maximumLineCount: 1
+                                                elide: Text.ElideRight
+                                            }
+                                        }
+
+                                        // Inline Play/Pause button for this specific source
+                                        Rectangle {
+                                            Layout.preferredWidth: 20
+                                            Layout.preferredHeight: 20
+                                            radius: 10
+                                            color: dropPlayMa.containsMouse
+                                                ? Qt.rgba(1, 1, 1, 0.24)
+                                                : (dropItem.isSrcPlaying ? Qt.rgba(0.19, 0.82, 0.35, 0.22) : Qt.rgba(1, 1, 1, 0.10))
+                                            scale: dropPlayMa.pressed ? 0.88 : 1.0
+                                            Behavior on scale { NumberAnimation { duration: 80 } }
+
+                                            Canvas {
+                                                anchors.centerIn: parent
+                                                width: 10
+                                                height: 10
+                                                property bool playing: dropItem.isSrcPlaying
+                                                onPlayingChanged: requestPaint()
+                                                onPaint: {
+                                                    var ctx = getContext("2d");
+                                                    ctx.clearRect(0, 0, width, height);
+                                                    ctx.fillStyle = playing ? "#30d158" : "#ffffff";
+                                                    if (playing) {
+                                                        ctx.fillRect(2, 1.5, 2.2, 7);
+                                                        ctx.fillRect(5.8, 1.5, 2.2, 7);
+                                                    } else {
+                                                        ctx.beginPath();
+                                                        ctx.moveTo(2.5, 1.5);
+                                                        ctx.lineTo(8.5, 5);
+                                                        ctx.lineTo(2.5, 8.5);
+                                                        ctx.closePath();
+                                                        ctx.fill();
+                                                    }
+                                                }
+                                            }
+
+                                            MouseArea {
+                                                id: dropPlayMa
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: ctrl.togglePlayerAt(dropItem.index)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Footer "Solo esta" button when 2+ sources play simultaneously
+                    Rectangle {
+                        visible: ctrl.playingCount > 1
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: 22
+                        radius: 7
+                        color: soloDropMa.containsMouse ? Qt.rgba(1.0, 0.27, 0.23, 0.28) : Qt.rgba(1.0, 0.27, 0.23, 0.14)
+                        border.width: 1
+                        border.color: Qt.rgba(1.0, 0.27, 0.23, 0.38)
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "Pausar las demás fuentes"
+                            font { family: Appearance.fontFamily; pixelSize: 10; weight: Font.DemiBold }
+                            color: "#ff6961"
+                        }
+
+                        MouseArea {
+                            id: soloDropMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                ctrl.pauseOtherPlayers(ctrl.playerIndex);
+                                ctrl.sourcesMenuOpen = false;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // ── Right column: Synced Lyrics (3-line Nusa cascade) ─────
@@ -457,178 +760,5 @@ Item {
                 Item { Layout.fillHeight: true }
             }
         }
-    }
-
-    // ── Multi-Source Audio Switcher Bar (ONLY visible when 2+ sources play simultaneously) ──
-    RowLayout {
-        visible: ctrl.showMultiSources
-        Layout.fillWidth: true
-        Layout.preferredHeight: 28
-        spacing: 6
-
-        Repeater {
-            model: ctrl.players
-            delegate: Rectangle {
-                id: srcPill
-                required property var modelData
-                required property int index
-                readonly property bool isSelected: index === ctrl.playerIndex
-                readonly property bool isSrcPlaying: modelData && modelData.playbackState === MprisPlaybackState.Playing
-                readonly property string srcTitle: (modelData && modelData.trackTitle) ? String(modelData.trackTitle) : ctrl.playerLabel(modelData)
-                readonly property string srcArt: (modelData && modelData.trackArtUrl) ? String(modelData.trackArtUrl) : ""
-
-                Layout.fillWidth: true
-                Layout.preferredHeight: 28
-                radius: 10
-                color: isSelected
-                    ? Qt.rgba(ctrl.artAccent.r, ctrl.artAccent.g, ctrl.artAccent.b, 0.24)
-                    : (srcMa.containsMouse ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(1, 1, 1, 0.07))
-                border.width: 1
-                border.color: isSelected
-                    ? Qt.rgba(ctrl.artAccent.r, ctrl.artAccent.g, ctrl.artAccent.b, 0.65)
-                    : (isSrcPlaying ? Qt.rgba(0.19, 0.82, 0.35, 0.45) : Qt.rgba(1, 1, 1, 0.10))
-                Behavior on color { ColorAnimation { duration: 150 } }
-                Behavior on border.color { ColorAnimation { duration: 150 } }
-
-                MouseArea {
-                    id: srcMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: ctrl.selectPlayer(srcPill.index)
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: 5
-                    anchors.rightMargin: 4
-                    spacing: 6
-
-                    // Mini cover art + live green dot when playing
-                    Item {
-                        Layout.preferredWidth: 18
-                        Layout.preferredHeight: 18
-
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 5
-                            color: "#1b1b24"
-                            clip: true
-                            Image {
-                                anchors.fill: parent
-                                source: srcPill.srcArt
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                smooth: true
-                                visible: srcPill.srcArt !== "" && status === Image.Ready
-                            }
-                            Text {
-                                anchors.centerIn: parent
-                                visible: srcPill.srcArt === ""
-                                text: "♪"
-                                font { family: Appearance.fontFamily; pixelSize: 10; weight: Font.Bold }
-                                color: "#5e9cff"
-                            }
-                        }
-
-                        Rectangle {
-                            visible: srcPill.isSrcPlaying
-                            anchors.right: parent.right
-                            anchors.bottom: parent.bottom
-                            anchors.rightMargin: -1
-                            anchors.bottomMargin: -1
-                            width: 6
-                            height: 6
-                            radius: 3
-                            color: "#30d158"
-                            border.width: 1
-                            border.color: "#09090e"
-                        }
-                    }
-
-                    // Track title + source tag
-                    Text {
-                        Layout.fillWidth: true
-                        text: srcPill.srcTitle
-                        font { family: Appearance.fontFamily; pixelSize: 10; weight: srcPill.isSelected ? Font.Bold : Font.Medium }
-                        color: srcPill.isSelected ? "#ffffff" : Qt.rgba(1, 1, 1, 0.76)
-                        elide: Text.ElideRight
-                    }
-
-                    // Inline Play / Pause button for THIS specific player
-                    Rectangle {
-                        Layout.preferredWidth: 20
-                        Layout.preferredHeight: 20
-                        radius: 10
-                        color: srcPlayMa.containsMouse
-                            ? Qt.rgba(1, 1, 1, 0.26)
-                            : (srcPill.isSrcPlaying ? Qt.rgba(0.19, 0.82, 0.35, 0.24) : Qt.rgba(1, 1, 1, 0.10))
-                        scale: srcPlayMa.pressed ? 0.88 : 1.0
-                        Behavior on scale { NumberAnimation { duration: 80 } }
-
-                        Canvas {
-                            id: miniPlayIco
-                            anchors.centerIn: parent
-                            width: 10
-                            height: 10
-                            property bool playing: srcPill.isSrcPlaying
-                            onPlayingChanged: requestPaint()
-                            onPaint: {
-                                var ctx = getContext("2d");
-                                ctx.clearRect(0, 0, width, height);
-                                ctx.fillStyle = playing ? "#30d158" : "#ffffff";
-                                if (playing) {
-                                    ctx.fillRect(2, 1.5, 2.2, 7);
-                                    ctx.fillRect(5.8, 1.5, 2.2, 7);
-                                } else {
-                                    ctx.beginPath();
-                                    ctx.moveTo(2.5, 1.5);
-                                    ctx.lineTo(8.5, 5);
-                                    ctx.lineTo(2.5, 8.5);
-                                    ctx.closePath();
-                                    ctx.fill();
-                                }
-                            }
-                        }
-
-                        MouseArea {
-                            id: srcPlayMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: ctrl.togglePlayerAt(srcPill.index)
-                        }
-                    }
-                }
-            }
-        }
-
-        // Quick "Solo" button when 2+ sources are playing simultaneously -> pauses all others
-        Rectangle {
-            visible: ctrl.playingCount > 1
-            Layout.preferredWidth: soloTxt.implicitWidth + 12
-            Layout.preferredHeight: 28
-            radius: 10
-            color: soloMa.containsMouse ? Qt.rgba(1.0, 0.27, 0.23, 0.34) : Qt.rgba(1.0, 0.27, 0.23, 0.18)
-            border.width: 1
-            border.color: Qt.rgba(1.0, 0.27, 0.23, 0.45)
-
-            Text {
-                id: soloTxt
-                anchors.centerIn: parent
-                text: "Solo"
-                font { family: Appearance.fontFamily; pixelSize: 10; weight: Font.Bold }
-                color: "#ff6961"
-            }
-
-            MouseArea {
-                id: soloMa
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: ctrl.pauseOtherPlayers(ctrl.playerIndex)
-            }
-        }
-    }
     }
 }

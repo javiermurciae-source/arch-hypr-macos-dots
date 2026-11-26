@@ -13,7 +13,7 @@ PanelWindow {
     anchors { top: true }
     margins { top: 0 }
     implicitWidth: 660
-    implicitHeight: 235
+    implicitHeight: 255
     color: "transparent"
     exclusiveZone: -1
     WlrLayershell.namespace: "macos:island"
@@ -68,13 +68,17 @@ PanelWindow {
         }
         if (mode === "recCompact") return 224;
         if (mode === "pomoCompact") return 196;
-        if (mode === "mediaCompact") return islandState.showMultiSources ? 280 : 254;
+        if (mode === "mediaCompact") return 254;
         return 146; // idle mascot (sleek Nusa proportions)
     }
 
     readonly property real targetHeight: {
         if (mode === "expanded") {
-            if (islandState.currentPage === 0 && islandState.showMultiSources) return 204;
+            if (islandState.currentPage === 0 && islandState.sourcesMenuOpen) {
+                const rows = Math.min(3, Math.max(1, islandState.players.length));
+                const extra = islandState.playingCount > 1 ? 28 : 0;
+                return Math.min(244, Math.max(168, 120 + rows * 34 + extra));
+            }
             return (islandState.currentPage === 3 && islandState.addingTodo) ? 182 : 168;
         }
         if (mode === "notif") {
@@ -132,12 +136,14 @@ PanelWindow {
     function prevPage() {
         islandState.addingTodo = false;
         islandState.waterSettingsOpen = false;
+        islandState.sourcesMenuOpen = false;
         islandState.currentPage = (islandState.currentPage - 1 + islandState.pageCount) % islandState.pageCount;
     }
 
     function nextPage() {
         islandState.addingTodo = false;
         islandState.waterSettingsOpen = false;
+        islandState.sourcesMenuOpen = false;
         islandState.currentPage = (islandState.currentPage + 1) % islandState.pageCount;
     }
 
@@ -387,32 +393,8 @@ PanelWindow {
                 text: islandState.trackTitle
                 font { family: Appearance.fontFamily; pixelSize: 11; weight: Font.DemiBold }
                 color: "#ffffff"
+                maximumLineCount: 1
                 elide: Text.ElideRight
-            }
-
-            // Multi-source badge ONLY when 2+ sources are playing simultaneously
-            Rectangle {
-                visible: islandState.showMultiSources
-                Layout.preferredWidth: multiBadgeTxt.implicitWidth + 10
-                Layout.preferredHeight: 16
-                radius: 8
-                color: Qt.rgba(0.19, 0.82, 0.35, 0.28)
-                border.width: 1
-                border.color: Qt.rgba(0.19, 0.82, 0.35, 0.65)
-
-                Text {
-                    id: multiBadgeTxt
-                    anchors.centerIn: parent
-                    text: islandState.playingCount + "▶"
-                    font { family: Appearance.fontFamily; pixelSize: 9; weight: Font.Bold }
-                    color: "#30d158"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: islandState.cyclePlayer()
-                }
             }
 
             // 5-bar lively equalizer (stepped ~6.5 FPS instead of 144 FPS -> 20x lower CPU & Hyprland load!)
@@ -1412,6 +1394,7 @@ PanelWindow {
                                 onClicked: {
                                     islandState.addingTodo = false;
                                     islandState.waterSettingsOpen = false;
+                                    islandState.sourcesMenuOpen = false;
                                     islandState.currentPage = index;
                                 }
                             }

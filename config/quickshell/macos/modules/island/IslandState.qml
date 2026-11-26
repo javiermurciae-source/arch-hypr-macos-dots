@@ -171,6 +171,7 @@ Item {
         return c;
     }
     readonly property bool anyPlaying: playingCount > 0
+    property bool sourcesMenuOpen: false
     property bool _keepMultiWhileExpanded: false
     readonly property bool showMultiSources: (playingCount > 1) || (expanded && _keepMultiWhileExpanded && players.length > 1)
 
@@ -180,6 +181,7 @@ Item {
     onExpandedChanged: {
         if (!expanded) {
             _keepMultiWhileExpanded = false;
+            sourcesMenuOpen = false;
             // If user paused their pinned player and another is playing, let pickPlayers auto-follow again
             if (activePlayer && activePlayer.playbackState !== MprisPlaybackState.Playing && anyPlaying) {
                 _userPinnedPlayer = false;
@@ -187,7 +189,10 @@ Item {
             }
         }
     }
-    readonly property string trackTitle: activePlayer ? (activePlayer.trackTitle || "No Media Playing") : "No Media Playing"
+    readonly property string trackTitle: {
+        if (!activePlayer || !activePlayer.trackTitle) return "No Media Playing";
+        return String(activePlayer.trackTitle).replace(/[\r\n]+/g, " ").replace(/\s{2,}/g, " ").trim() || "No Media Playing";
+    }
     readonly property string trackArtist: {
         if (!activePlayer) return "Play something to see it here";
         const a = activePlayer.trackArtists;
@@ -271,9 +276,29 @@ Item {
         return id || "Media";
     }
 
+    function isIgnoredPlayer(p) {
+        if (!p) return true;
+        if (p.identity === "playerctld" || p.desktopEntry === "playerctld") return true;
+        const dbus = String(p.dbusName || "").toLowerCase();
+        const id = String(p.identity || p.desktopEntry || "").toLowerCase();
+        const isFirefox = dbus.indexOf("firefox") >= 0 || id.indexOf("firefox") >= 0;
+        if (!isFirefox) return false;
+
+        const rawTitle = String(p.trackTitle || "");
+        const url = (p.metadata && p.metadata["xesam:url"]) ? String(p.metadata["xesam:url"]).toLowerCase() : "";
+        const hasArt = String(p.trackArtUrl || "").trim().length > 0;
+
+        // Ignore X.com / Twitter feed autoplay videos & silent clips in Firefox
+        if (url.indexOf("x.com") >= 0 || url.indexOf("twitter.com") >= 0) return true;
+        if (/(?:^|\s)\/\s*x\s*$/i.test(rawTitle.trim())) return true;
+        if (/(?:https?:\/\/)?(?:t\.co|x\.com|twitter\.com)\//i.test(rawTitle)) return true;
+        if (!hasArt && (rawTitle.indexOf("\n") >= 0 || rawTitle.length > 80 || (p.length > 0 && p.length <= 180))) return true;
+        return false;
+    }
+
     function pickPlayers() {
         const list = Mpris.players.values.filter(p =>
-            p && p.identity !== "playerctld" && p.desktopEntry !== "playerctld"
+            !state.isIgnoredPlayer(p)
             && (!!p.trackTitle || p.playbackState === MprisPlaybackState.Playing));
         state.players = list;
         if (list.length === 0) {

@@ -10,7 +10,22 @@ Singleton {
     id: mpris
     // playerctld is a proxy that also registers on MPRIS (often empty, and it
     // may sort last), so it never counts as a player of its own.
-    property var players: Mpris.players.values.filter(p => String(p.dbusName || "").indexOf("playerctld") < 0)
+    function isIgnoredPlayer(p) {
+        if (!p) return true;
+        const dbus = String(p.dbusName || "").toLowerCase();
+        if (dbus.indexOf("playerctld") >= 0) return true;
+        if (dbus.indexOf("firefox") >= 0) {
+            const rawTitle = String(p.trackTitle || "");
+            const url = (p.metadata && p.metadata["xesam:url"]) ? String(p.metadata["xesam:url"]).toLowerCase() : "";
+            const hasArt = String(p.trackArtUrl || "").trim().length > 0;
+            if (url.indexOf("x.com") >= 0 || url.indexOf("twitter.com") >= 0) return true;
+            if (/(?:^|\s)\/\s*x\s*$/i.test(rawTitle.trim())) return true;
+            if (/(?:https?:\/\/)?(?:t\.co|x\.com|twitter\.com)\//i.test(rawTitle)) return true;
+            if (!hasArt && (rawTitle.indexOf("\n") >= 0 || rawTitle.length > 80 || (p.length > 0 && p.length <= 180))) return true;
+        }
+        return false;
+    }
+    property var players: Mpris.players.values.filter(p => !mpris.isIgnoredPlayer(p))
     // the playing player wins; otherwise the last one used, otherwise any with a track
     property var lastPlayer: null
     property var activePlayer: {
