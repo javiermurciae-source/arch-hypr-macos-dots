@@ -1,0 +1,1 @@
+../../../eqsh/core/system/NetworkManager.qml

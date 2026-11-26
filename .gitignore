@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+*.bak
+*.backup
+*.orig
+*.tmp
+.DS_Store
+config/quickshell/macos/assets/icons/tinted/

@@ -1,0 +1,221 @@
+{
+    "account": {
+        "avatarPath": "file://__USER_HOME__/.face",
+        "deviceDescription": "Retina, 13\", 2019",
+        "deviceName": "MacBook Air",
+        "firstTimeRunning": true,
+        "name": "",
+        "serialNumber": "FHGOU82OWLDG"
+    },
+    "appearance": {
+        "accentColor": "#6e6e73",
+        "dynamicAccentColor": false,
+        "glass": 0,
+        "glass_Color": "#202369ff",
+        "iconColorType": 1,
+        "multiAccentColor": false
+    },
+    "bar": {
+        "animateButton": false,
+        "autohide": false,
+        "autohideGlobalMenu": false,
+        "autohideGlobalMenuMode": 1,
+        "autohideMode": "Always",
+        "batteryFormat": "%p%",
+        "batteryFormatChargin": "*%p%",
+        "batteryMode": "pill",
+        "buttonColor": "#22ff0000",
+        "buttonColorMode": 1,
+        "color": "#01000000",
+        "dateFormat": "ddd, dd MMM HH:mm",
+        "defaultAppName": "Equora",
+        "enable": true,
+        "fullscreenColor": "#000000",
+        "height": 30,
+        "hideDuration": 125,
+        "hideOnLock": true,
+        "monochromeTray": true,
+        "rightBarItems": [
+            "systemTray",
+            "wifi",
+            "battery",
+            "search",
+            "bluetooth",
+            "controlCenter",
+            "ai",
+            "clock"
+        ],
+        "size": "Compact",
+        "useBlur": false
+    },
+    "dialogs": {
+        "acceptButtonColor": "#2369ff",
+        "acceptButtonTextColor": "#fff",
+        "backgroundColor": "#232323",
+        "customColor": false,
+        "declineButtonColor": "#333",
+        "declineButtonTextColor": "#fff",
+        "enable": true,
+        "height": 250,
+        "textColor": "#fff",
+        "useShadow": true,
+        "width": 250
+    },
+    "dock": {
+        "apps": [
+            "org.gnome.Nautilus",
+            "eq:launchpad",
+            "eq:settings",
+            "kitty",
+            "org.mozilla.firefox",
+            "code",
+            "org.gnome.DiskUtility"
+        ],
+        "autohide": true,
+        "autohideDelay": 2000,
+        "border": "#ff4a4a4a",
+        "color": "#634a4a4a",
+        "enable": true,
+        "minimizeEffect": "scale",
+        "position": "bottom",
+        "radius": 25,
+        "scale": 1,
+        "showAnimation": true
+    },
+    "general": {
+        "appleNames": true,
+        "autoDarkMode": false,
+        "darkMode": false,
+        "deviceLevel": "desktop",
+        "language": "en_US",
+        "reduceMotion": true
+    },
+    "launchpad": {
+        "enable": true,
+        "fadeDuration": 500,
+        "zoom": 1.05
+    },
+    "lockScreen": {
+        "avatarSize": 50,
+        "blur": 0,
+        "blurStrength": 1,
+        "clockZoom": 1,
+        "clockZoomDuration": 300,
+        "customWallpaperPath": "file://__USER_HOME__/.local/share/equora/wallpapers/Sequoia-Sunrise.png",
+        "dateFormat": "dddd, MMMM dd",
+        "dimColor": "#000000",
+        "dimOpacity": 0.1,
+        "enable": true,
+        "fadeDuration": 500,
+        "interactiveScreens": [
+            "eDP-1",
+            "DP-1"
+        ],
+        "mainScreen": "eDP-1",
+        "showAvatar": true,
+        "showName": true,
+        "timeFormat": "hh:mm",
+        "usageInfo": "Touch ID or Enter Password",
+        "useCustomWallpaper": false,
+        "useFocusedScreen": true,
+        "userNote": "",
+        "zoom": 1,
+        "zoomDuration": 0
+    },
+    "misc": {
+        "showVersion": false
+    },
+    "notch": {
+        "autohide": false,
+        "backgroundColor": "#000000",
+        "camera": false,
+        "color": "#ffffff",
+        "enable": true,
+        "fluidEdge": true,
+        "fluidEdgeStrength": 0.6,
+        "height": 28,
+        "hideDuration": 125,
+        "islandMode": false,
+        "margin": 2,
+        "maxWidth": 400,
+        "minWidth": 175,
+        "onlyVisual": false,
+        "openHoverMs": 125,
+        "openOnHover": false,
+        "radius": 30
+    },
+    "notifications": {
+        "backgroundColor": "#111111"
+    },
+    "osd": {
+        "animation": 1,
+        "color": "#40000000",
+        "duration": 200,
+        "enable": true
+    },
+    "screenEdges": {
+        "color": "black",
+        "enable": true,
+        "radius": 20
+    },
+    "screenshot": {
+        "enable": true
+    },
+    "sigrid": {
+        "key": "",
+        "model": "gemini-2.5-flash",
+        "options": {
+            "type": "google"
+        },
+        "systemPromptLocation": "file://__USER_HOME__/.local/share/equora/eqsh/config/sigrid_system_prompt.txt"
+    },
+    "spotlight": {
+        "enable": true,
+        "exclude": {
+            "_home_rootkit_Downloads": false
+        }
+    },
+    "stage": {
+        "showItems": "Desktop"
+    },
+    "wallpaper": {
+        "color": "#1c1c1e",
+        "colors": [
+            "add",
+            "#000000",
+            "#6967B0",
+            "#19AFD2",
+            "#E26E7B",
+            "#4253D7",
+            "#FBDACB",
+            "#F4DEC7",
+            "#D4A658",
+            "#CD4B93",
+            "#E93E22",
+            "#F6D3CF",
+            "#E3E4E6",
+            "#FCDDE3",
+            "#7A7B80",
+            "#BEBFC4",
+            "#555555",
+            "#007972",
+            "#6CC3A3",
+            "#FDBA13"
+        ],
+        "desktopEnable": true,
+        "enable": true,
+        "folder": "file://__USER_HOME__/.local/share/equora/wallpapers/",
+        "path": "__USER_HOME__/Pictures/Wallpapers/abstract.jpg"
+    },
+    "widgets": {
+        "cellsX": 16,
+        "cellsY": 10,
+        "enable": true,
+        "location": "Berlin",
+        "radius": 25,
+        "size": "Medium",
+        "tempUnit": "C",
+        "useLocationInUI": true,
+        "wobbleOnEdit": false
+    }
+}

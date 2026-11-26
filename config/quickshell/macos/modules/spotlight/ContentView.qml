@@ -1,0 +1,1 @@
+../../../eqsh/modules/spotlight/ContentView.qml

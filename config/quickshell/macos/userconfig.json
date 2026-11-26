@@ -1,0 +1,67 @@
+{
+    "accentColor": "#6E6E73",
+    "appearance": {
+        "accentName": "graphite",
+        "highlightName": "#0A6CFF",
+        "scrollBars": "When scrolling",
+        "sidebarIconSize": "Small"
+    },
+    "avatarPath": "__USER_HOME__/.local/share/systemsettings/avatar-1790780655549.png",
+    "bar": {
+        "showBackground": true
+    },
+    "battery": {
+        "displayOff": "Never",
+        "lowPower": "Never"
+    },
+    "darkMode": true,
+    "dock": {
+        "titleBarAction": "Zoom"
+    },
+    "dockAnimateHide": true,
+    "dockAutohide": true,
+    "dockIconSize": 48,
+    "dockIndicators": true,
+    "dockMagnification": true,
+    "dockPosition": "bottom",
+    "dockShowAnimation": true,
+    "dockZoom": 74,
+    "folderColor": "",
+    "highlightColor": "#0A6CFF",
+    "hotCorners": {
+        "bl": "-",
+        "br": "-",
+        "tl": "-",
+        "tr": "-"
+    },
+    "iconStyle": "Dark",
+    "iconStyleMode": "Always",
+    "iconTint": "#0D3570",
+    "liquidGlass": "Clear",
+    "liquidGlassIntensity": 0,
+    "menubar": {
+        "battery": true,
+        "bluetooth": true,
+        "clock": true,
+        "controlcenter": true,
+        "display": true,
+        "enabledApps": "ChatGPTHelper|DockFlow|Elgato Stream Deck|LookAway|Notion Calendar|PastePal|Rize|Substage|Umbra|Creative Cloud",
+        "mirror": false,
+        "siri": true,
+        "sound": true,
+        "spotlight": true,
+        "timeMachine": false,
+        "tray": true,
+        "weather": false,
+        "wifi": true
+    },
+    "menubarBattery": true,
+    "menubarBluetooth": true,
+    "menubarClock": true,
+    "menubarDisplay": true,
+    "menubarSpotlight": true,
+    "menubarTray": true,
+    "menubarWifi": true,
+    "reduceMotion": true,
+    "spotlightEnable": true
+}

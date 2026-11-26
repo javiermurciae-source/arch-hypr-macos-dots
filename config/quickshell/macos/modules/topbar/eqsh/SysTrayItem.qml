@@ -1,0 +1,1 @@
+../../../../eqsh/ui/components/panel/SysTrayItem.qml

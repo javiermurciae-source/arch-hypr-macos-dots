@@ -1,0 +1,1 @@
+../../eqsh/services/ClipboardService.qml

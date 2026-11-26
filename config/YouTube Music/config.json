@@ -1,0 +1,69 @@
+{
+	"window-size": {
+		"width": 2560,
+		"height": 1440
+	},
+	"window-maximized": true,
+	"window-position": {
+		"x": 0,
+		"y": 0
+	},
+	"url": "https://music.youtube.com",
+	"options": {
+		"tray": false,
+		"appVisible": true,
+		"autoUpdates": true,
+		"alwaysOnTop": false,
+		"hideMenu": true,
+		"hideMenuWarned": true,
+		"startAtLogin": false,
+		"disableHardwareAcceleration": false,
+		"removeUpgradeButton": true,
+		"restartOnConfigChanges": false,
+		"trayClickPlayPause": false,
+		"autoResetAppCache": false,
+		"resumeOnStart": true,
+		"likeButtons": "",
+		"swapLikeButtonsOrder": false,
+		"proxy": "",
+		"startingPage": "",
+		"overrideUserAgent": false,
+		"usePodcastParticipantAsArtist": false,
+		"themes": []
+	},
+	"plugins": {
+		"transparent-player": {
+			"enabled": true
+		},
+		"ambient-mode": {
+			"enabled": false
+		},
+		"album-color-theme": {
+			"enabled": true,
+			"ratio": 0,
+			"enableSeekbar": true
+		},
+		"blur-nav-bar": {
+			"enabled": true
+		},
+		"custom-output-device": {
+			"enabled": true,
+			"output": "default",
+			"devices": {
+				"default": "Default"
+			}
+		},
+		"do-not-track": {
+			"enabled": true,
+			"cache": true,
+			"blocker": "In player",
+			"additionalBlockLists": [],
+			"disableDefaultLists": false
+		}
+	},
+	"__internal__": {
+		"migrations": {
+			"version": "3.12.1"
+		}
+	}
+}

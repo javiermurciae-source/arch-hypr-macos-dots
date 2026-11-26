@@ -1,0 +1,49 @@
+-- hyprliquid (zaregototsukai) — Liquid Glass material for layers
+-- Loaded instead of HyprGlass for comparison; switch back via:
+--   hyprland.lua: pcall(hl.plugin.load, ".../HyprGlass/hyprglass.so") + require("configs.hyprglass")
+if hl.plugin.hyprliquid then
+    hl.config(
+    {
+        plugin =
+        {
+            hyprliquid =
+            {
+                watch_system_color_scheme = false,
+                background_sharing = false,
+            }
+        }
+    });
+
+    -- Dock: same Liquid Glass as the Control Center (eqsh:blur rule below)
+    hl.layer_rule(
+    {
+        name = "macos-dock",
+        match = { namespace = "macos:dock" },
+        ["hyprliquid:effect"] = "liquid_glass",
+        ["hyprliquid:corner_radius"] = 24,
+        ["hyprliquid:z_radius"] = 24,          -- full lens depth across the rounded edge
+        ["hyprliquid:glass_ior"] = 1.18,       -- stronger edge refraction (default 1.035)
+        ["hyprliquid:highlight_style"] = 0,
+        ["hyprliquid:glass_dispersion"] = false,
+        ["hyprliquid:vdf_map_mode"] = 1,
+        ["hyprliquid:vdf_map_update_policy"] = "onchange",
+    });
+
+    -- (topbar + spotlight: disabled by request — effect kept on dock only)
+
+    -- Control center + eqsh popovers (Pop with blur=true)
+    hl.layer_rule(
+    {
+        name = "eqsh-blur",
+        match = { namespace = "eqsh:blur" },
+        ["hyprliquid:effect"] = "liquid_glass",
+        ["hyprliquid:corner_radius"] = 24,
+        ["hyprliquid:highlight_style"] = 4,
+        ["hyprliquid:glass_dispersion"] = false,
+        ["hyprliquid:vdf_map_mode"] = 1,
+        ["hyprliquid:vdf_map_update_policy"] = "onchange",
+    });
+
+    -- Quickshell popups / secondary shell surfaces (top strip) — disabled by request
+end
+

@@ -1,0 +1,1 @@
+../../../eqsh/core/system/MusicPlayerProvider.qml

@@ -1,0 +1,14 @@
+# Desktop Apps
+pear-desktop-bin
+zapfast-bin
+wps-office
+localsend-bin
+antigravity
+
+# Windows & WPS Fonts
+ttf-ms-fonts
+ttf-wps-fonts
+
+# Hybrid GPU / ASUS Laptop (skip with --minimal or on non-ASUS/NVIDIA machines)
+supergfxctl
+nvidia-laptop-power-cfg

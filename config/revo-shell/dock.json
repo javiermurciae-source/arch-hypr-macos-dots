@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "pinned": [
+    {
+      "name": "Finder",
+      "icon": "Finder.png",
+      "desktop": "org.gnome.Nautilus",
+      "exec": "nautilus --new-window",
+      "appIds": [
+        "org.gnome.Nautilus",
+        "nautilus",
+        "Nautilus"
+      ]
+    },
+    {
+      "name": "Firefox",
+      "icon": "firefox.png",
+      "desktop": "firefox",
+      "exec": "/usr/lib/firefox/firefox",
+      "appIds": [
+        "firefox",
+        "Firefox"
+      ]
+    },
+    {
+      "name": "ZapFast",
+      "icon": "zapfast.svg",
+      "desktop": "zapfast",
+      "exec": "zapfast",
+      "appIds": [
+        "zapfast",
+        "ZapFast"
+      ]
+    },
+    {
+      "name": "Terminal",
+      "icon": "Terminal.png",
+      "desktop": "kitty",
+      "exec": "kitty",
+      "appIds": [
+        "kitty"
+      ]
+    },
+    {
+      "name": "System Settings",
+      "icon": "System Settings.png",
+      "desktop": "systemsettings",
+      "exec": "$HOME/.local/bin/systemsettings",
+      "appIds": [
+        "systemsettings",
+        "macos-settings",
+        "pearos-settings",
+        "pearos-settings-app"
+      ]
+    },
+    {
+      "name": "Antigravity",
+      "icon": "antigravity.png",
+      "desktop": "antigravity",
+      "exec": "/usr/bin/antigravity",
+      "appIds": [
+        "antigravity",
+        "Antigravity"
+      ]
+    }
+  ]
+}
