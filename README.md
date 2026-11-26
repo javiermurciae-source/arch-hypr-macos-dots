@@ -1,5 +1,17 @@
 # Arch Linux + Hyprland (Lua) + Quickshell macOS Minimal
 
+![Escritorio con Dynamic Island](docs/screenshots/desktop.png)
+
+## Capturas
+
+| Dynamic Island Expandido + Letras Sincronizadas | Terminal Kitty Obsidian Glass + Fastfetch |
+|---|---|
+| ![Dynamic Island](docs/screenshots/dynamic_island_expanded.png) | ![Kitty Fastfetch](docs/screenshots/terminal_fastfetch.png) |
+
+| Spotlight |
+|---|
+| ![Spotlight](docs/screenshots/spotlight.png) |
+
 Entorno completo, ligero y optimizado para **Arch Linux** (probado en ASUS TUF Gaming F15 FX507ZC4 híbrido Intel Iris Xe + RTX 3050 Mobile) con:
 
 - **Hyprland (Lua config):** Dock Liquid Glass (`hyprliquid`) con autohide y `exclusiveZone` exacto, blur nativo *frosted glass*, y soporte de iGPU Intel (`AQ_DRM_DEVICES` resuelto al nodo real `/dev/dri/cardN` para compatibilidad con Aquamarine).

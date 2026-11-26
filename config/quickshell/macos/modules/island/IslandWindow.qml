@@ -41,6 +41,8 @@ PanelWindow {
     IpcHandler {
         target: "island"
         function testBluetooth(): void { islandState.demoBluetoothAnimation() }
+        function setExpanded(open: bool): void { islandState.expanded = open }
+        function setLyrics(open: bool): void { islandState.lyricsOpen = open }
     }
 
     // ── Active visual mode ────────────────────────────────────────
