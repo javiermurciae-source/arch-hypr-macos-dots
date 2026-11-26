@@ -1,5 +1,7 @@
 # Arch Linux + Hyprland (Lua) + Quickshell macOS Minimal
 
+> Fork personalizado de [vzbc/revo-shell](https://github.com/vzbc/revo-shell) — optimizado para Arch Linux + Hyprland Lua, con la **Dynamic Island full vibecodeada** y colaboración de **Claude Code** en el shell `macos`.
+
 ![Escritorio con Dynamic Island](docs/screenshots/desktop.png)
 
 ## Capturas
@@ -16,7 +18,7 @@ Entorno completo, ligero y optimizado para **Arch Linux** (probado en ASUS TUF G
 
 - **Hyprland (Lua config):** Dock Liquid Glass (`hyprliquid`) con autohide y `exclusiveZone` exacto, blur nativo *frosted glass*, y soporte de iGPU Intel (`AQ_DRM_DEVICES` resuelto al nodo real `/dev/dri/cardN` para compatibilidad con Aquamarine).
 - **Quickshell macOS Minimal (`macos` + `eqsh`):**
-  - **Dynamic Island (Nusa-style):** reproductor MPRIS multi-fuente (solo muestra barra extra cuando suenan 2+ fuentes a la vez), letras sincronizadas (`LRCLIB` con caché por álbum y duración), notificaciones con respuesta en línea, animaciones nativas Bluetooth, y píldora en vivo de grabación de pantalla con botón directo a `mpv`.
+  - **Dynamic Island (full vibecodeada, estilo Nusa):** reproductor MPRIS con lista desplegable de fuentes (control individual y filtro automático de clips de `x.com`), letras sincronizadas (`LRCLIB` con caché por álbum y duración), autofocus al clic en canción/notificaciones (GUI y CLI), respuesta en línea, animaciones nativas Bluetooth y píldora en vivo de grabación de pantalla con botón directo a `mpv`.
   - **Apple Music Lyrics Lock Screen:** carátulas HD `1200×1200`, letras sincronizadas centradas y reloj **MacGlassClock** (Liquid Glass).
   - **Visual Intelligence (`Super + G`):** recorte en pantalla estilo macOS con búsqueda por imagen (Google Lens) y consulta directa a Antigravity.
   - **Spotlight (`Super`):** lanzador principal con historial de portapapeles (`Super + V`).
@@ -65,11 +67,8 @@ chmod +x install.sh
 
 ---
 
-## Conectar a GitHub más adelante
+## Créditos y Colaboradores
 
-Este repositorio está inicializado solo en local. Cuando quieras subirlo:
-
-```bash
-git remote add origin git@github.com:TU_USUARIO/TU_REPO.git
-git push -u origin main
-```
+- **Fork base:** [vzbc/revo-shell](https://github.com/vzbc/revo-shell) — proyecto original de Revo Shell sobre el cual nace este fork personalizado.
+- **Colaborador en `macos`:** **Claude Code** — colaboración en la base y ajustes del shell `macos`.
+- **Dynamic Island:** full vibecodeada desde cero sobre Quickshell (animaciones, selector desplegable de fuentes MPRIS, letras sincronizadas, notificaciones interactivas y autofocus).
